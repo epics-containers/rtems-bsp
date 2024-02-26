@@ -31,13 +31,15 @@ ENV PATH=${VIRTUALENV}/bin:${PATH}
 WORKDIR  /rtems/src
 RUN curl https://ftp.rtems.org/pub/rtems/releases/6/rc/${VERSION}/sources/rtems-source-builder-${VERSION}.tar.xz \
     | tar xJf - && \
-    mv rtems-source-builder* rsb && \
-    curl https://ftp.rtems.org/pub/rtems/releases/6/rc/${VERSION}/sources/rtems-${VERSION}.tar.xz \
-    | tar xJf -
+    mv rtems-source-builder* rsb
+    # && \
+    # curl https://ftp.rtems.org/pub/rtems/releases/6/rc/${VERSION}/sources/rtems-${VERSION}.tar.xz \
+    # | tar xJf -
 
 WORKDIR  /rtems/src/rsb/rtems
 # build the tool suite
 RUN ../source-builder/sb-set-builder --prefix=/rtems/prefix 6/rtems-powerpc
 
-
-
+# build the BSP
+RUN ../source-builder/sb-set-builder --prefix /rtems/prefix/ --target=powerpc-rtems6 \
+    --with-rtems-bsp=powerpc/beatnik 6/rtems-kernel
