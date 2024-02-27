@@ -32,9 +32,9 @@ RUN git clone git://git.rtems.org/rtems-source-builder.git /rtems/rsb
 WORKDIR /rtems/rsb/rtems
 RUN mkdir /rtems/toolchain && \
     ../source-builder/sb-set-builder --prefix=/rtems/toolchain 6/rtems-powerpc
-ENV PATH=/tools/bin:${PATH}
+ENV PATH=/toolchain/bin:${PATH}
 
 # build the Board Support Package (BSP) for the Beatnik
-RUN ../source-builder/sb-set-builder --prefix /rtems/prefix/ --with-rtems-bsp=powerpc/beatnik 6/rtems-kernel
+RUN ../source-builder/sb-set-builder --prefix /rtems/bsp/ --with-rtems-bsp=powerpc/beatnik 6/rtems-kernel
 # add in the legacy networking stack
-RUN ../source-builder/sb-set-builder --prefix /rtems/prefix/ --with-rtems-bsp=powerpc/beatnik 6/rtems-net-legacy.bset
+RUN ../source-builder/sb-set-builder --prefix /rtems/bsp/ --with-rtems-bsp=powerpc/beatnik 6/rtems-net-legacy.bset
