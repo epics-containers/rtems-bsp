@@ -3,43 +3,38 @@ FROM ubuntu:22.04 as developer
 ENV VERSION 6.1-rc2
 ENV VIRTUALENV /venv
 
-# build tools for x86 including python
+# build tools for x86 including python and busybox (for unzip and others)
 # https://docs.rtems.org/branches/master/user/start/preparation.html#host-computer
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
     bison \
-    ca-certificates \
+    busybox \
     curl \
     build-essential \
-    busybox \
+    diffutils \
     flex \
     git \
-    libreadline-dev \
     python3-dev \
-    python3-pip \
     python3-venv \
-    ssh-client \
-    vim \
-    && rm -rf /var/lib/apt/lists/* \
-    && busybox --install
+    && rm -rf /var/lib/apt/lists/* && \
+    busybox --install
 
-# setup a python venv
+# setup a python venv - requried by the RSB to find 'python'
 RUN python3 -m venv ${VIRTUALENV}
 ENV PATH=${VIRTUALENV}/bin:${PATH}
 
-# get the sources for RTEMS Source Builder (RSB) and Kernel
-WORKDIR  /rtems/src
-RUN curl https://ftp.rtems.org/pub/rtems/releases/6/rc/${VERSION}/sources/rtems-source-builder-${VERSION}.tar.xz \
-    | tar xJf - && \
-    mv rtems-source-builder* rsb
-    # && \
-    # curl https://ftp.rtems.org/pub/rtems/releases/6/rc/${VERSION}/sources/rtems-${VERSION}.tar.xz \
-    # | tar xJf -
+WORKDIR /rtems
 
-WORKDIR  /rtems/src/rsb/rtems
-# build the tool suite
-RUN ../source-builder/sb-set-builder --prefix=/rtems/prefix 6/rtems-powerpc
+# get the RTEMS Source Builder (RSB) with - no releases so using latest
+RUN git clone git://git.rtems.org/rtems-source-builder.git /rtems/rsb
 
-# build the BSP
-RUN ../source-builder/sb-set-builder --prefix /rtems/prefix/ --target=powerpc-rtems6 \
-    --with-rtems-bsp=powerpc/beatnik 6/rtems-kernel
+# build the cross compilation tool suite
+WORKDIR /rtems/rsb/rtems
+RUN mkdir /rtems/toolchain && \
+    ../source-builder/sb-set-builder --prefix=/rtems/toolchain 6/rtems-powerpc
+ENV PATH=/tools/bin:${PATH}
+
+# build the Board Support Package (BSP) for the Beatnik
+RUN ../source-builder/sb-set-builder --prefix /rtems/prefix/ --with-rtems-bsp=powerpc/beatnik 6/rtems-kernel
+# add in the legacy networking stack
+../source-builder/sb-set-builder --prefix /rtems/prefix/ --with-rtems-bsp=powerpc/beatnik 6/rtems-net-legacy.bset

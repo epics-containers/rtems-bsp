@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../rtems-source-builder"
+		}
+	],
+	"settings": {
+		"workbench.colorCustomizations": {
+			"titleBar.activeBackground": "#3a3681",
+			"titleBar.activeForeground": "#cccccc",
+		},
+	},
+}
