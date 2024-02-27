@@ -37,4 +37,4 @@ ENV PATH=/tools/bin:${PATH}
 # build the Board Support Package (BSP) for the Beatnik
 RUN ../source-builder/sb-set-builder --prefix /rtems/prefix/ --with-rtems-bsp=powerpc/beatnik 6/rtems-kernel
 # add in the legacy networking stack
-../source-builder/sb-set-builder --prefix /rtems/prefix/ --with-rtems-bsp=powerpc/beatnik 6/rtems-net-legacy.bset
+RUN ../source-builder/sb-set-builder --prefix /rtems/prefix/ --with-rtems-bsp=powerpc/beatnik 6/rtems-net-legacy.bset
