@@ -32,7 +32,7 @@ RUN git clone git://git.rtems.org/rtems-source-builder.git /rtems/rsb
 WORKDIR /rtems/rsb/rtems
 RUN mkdir /rtems/toolchain && \
     ../source-builder/sb-set-builder --prefix=/rtems/toolchain 6/rtems-powerpc
-ENV PATH=/toolchain/bin:${PATH}
+ENV PATH=/rtems/toolchain/bin:${PATH}
 
 # build the Board Support Package (BSP) for the Beatnik
 RUN ../source-builder/sb-set-builder --prefix /rtems/bsp/ --with-rtems-bsp=powerpc/beatnik 6/rtems-kernel
