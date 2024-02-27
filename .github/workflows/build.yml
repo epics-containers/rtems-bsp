@@ -40,7 +40,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push image
+      - name: Build image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -50,4 +50,18 @@ jobs:
           tags: ${{ env.TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          load: true
+
+      - name: Test image
+        run: echo 'no tests yet'
+
+      - name: Push image
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: ${{ matrix.platforms }}
+          target: ${{ matrix.target }}
+          build-args: TARGET_ARCHITECTURE=${{ matrix.architecture }}
+          tags: ${{ env.TAG }}
           push: true
