@@ -1,6 +1,5 @@
 FROM ubuntu:22.04 as developer
 
-
 # build tools for x86 including python and busybox (for unzip and others)
 # https://docs.rtems.org/branches/master/user/start/preparation.html#host-computer
 RUN apt-get update -y && apt-get upgrade -y && \
@@ -18,13 +17,13 @@ RUN apt-get update -y && apt-get upgrade -y && \
     busybox --install
 
 ENV VIRTUALENV /venv
-ENV RTEMS_VERSION=6
-ENV RTEMS_RELEASE=0
+ENV RTEMS_MAJOR=6
+ENV RTEMS_MINOR=1-rc2
+ENV RTEMS_VERSION=${RTEMS_MAJOR}.${RTEMS_MINOR}
 ENV RTEMS_ARCH=powerpc
 ENV RTEMS_BSP=beatnik
-ENV RTEMS_BASE=/dls_sw/work/targetOS/rtems/rtems${RTEMS_VERSION}-${RTEMS_BSP}-legacy
-ENV RTEMS_INSTALL_DIR=rtems
-ENV RTEMS_ROOT=${RTEMS_BASE}/${RTEMS_INSTALL_DIR}/${RTEMS_VERSION}
+ENV RTEMS_BASE=/rtems${RTEMS_VERSION}-${RTEMS_BSP}-legacy
+ENV RTEMS_ROOT=${RTEMS_BASE}/rtems/${RTEMS_VERSION}
 ENV PATH=${RTEMS_ROOT}/bin:${PATH}
 ENV LANG=en_GB.UTF-8
 
@@ -32,21 +31,27 @@ ENV LANG=en_GB.UTF-8
 RUN python3 -m venv ${VIRTUALENV}
 ENV PATH=${VIRTUALENV}/bin:${PATH}
 
-WORKDIR ${RTEMS_BASE}
-# RUN mkdir ${RTEMS_INSTALL_DIR}
 
-# clone the RTEMS Source Builder and the kernel
-RUN git clone git://git.rtems.org/rtems-source-builder.git rsb && \
-    git clone git://git.rtems.org/rtems.git kernel
+# get the RTEMS Source Builder
+WORKDIR ${RTEMS_BASE}
+RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-source-builder-${RTEMS_VERSION}.tar.xz \
+    | tar -xJ && \
+    mv rtems-source-builder-${RTEMS_VERSION} rsb
 
 # build the cross compilation tool suite
 WORKDIR rsb/rtems
-RUN ../source-builder/sb-set-builder --jobs=3 --prefix=${RTEMS_ROOT} ${RTEMS_VERSION}/rtems-${RTEMS_ARCH}
+RUN ../source-builder/sb-set-builder --jobs=6 --prefix=${RTEMS_ROOT} ${RTEMS_VERSION}/rtems-${RTEMS_ARCH}
 
-# patch the kernel
+# get the kernel
+WORKDIR ${RTEMS_BASE}
+RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-${RTEMS_VERSION}.tar.xz \
+    | tar -xJ && \
+    mv rtems-${RTEMS_VERSION} kernel
+
+# # patch the kernel
 WORKDIR ${RTEMS_BASE}/kernel
-COPY VMEConfig.patch ..
-RUN git apply ../VMEConfig.patch && \
+COPY VMEConfig.patch .
+RUN git apply VMEConfig.patch && \
     ./waf bspdefaults --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} > config.ini && \
     sed -i \
         -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" \
@@ -58,7 +63,6 @@ RUN git apply ../VMEConfig.patch && \
 RUN ./waf && \
     ./waf install
 
-# get the legacy network stack
 RUN git clone git://git.rtems.org/rtems-net-legacy.git ${RTEMS_BASE}/rtems-net-legacy
 
 # add in the legacy network stack
