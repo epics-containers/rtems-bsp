@@ -75,19 +75,24 @@ RUN git submodule init && \
     ./waf && \
     ./waf install
 
-from environment AS runtime-prep
+from environment AS runtime_prep
 
 # to make this container much smaller we take just the BSP and strip it
 # At present epics-base will not build in github with the developer version
 # because of the 7GB limit on the size GHA filesystem. Therefore this 'runtime'
 # container is used there.
 
-COPY from=developer ${RTEMS_ROOT} ${RTEMS_ROOT}
+COPY --from=developer ${RTEMS_ROOT} ${RTEMS_ROOT}
 
-RUN powerpc-rtems6-strip $(find ${RTEMS_ROOT}) 2>/dev/null
-RUN strip $(find ${RTEMS_ROOT}) 2>/dev/null
+RUN apt-get update -y && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    binutils \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN powerpc-rtems6-strip $(find ${RTEMS_ROOT}) 2>/dev/null || true
+RUN strip $(find ${RTEMS_ROOT}) 2>/dev/null || true
 
 from environment AS runtime
 
-COPY from=developer ${RTEMS_ROOT} ${RTEMS_ROOT}
+COPY --from=runtime_prep ${RTEMS_ROOT} ${RTEMS_ROOT}
 
