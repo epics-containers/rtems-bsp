@@ -1,4 +1,17 @@
-FROM ubuntu:22.04 as developer
+FROM ubuntu:22.04 as environment
+
+ENV VIRTUALENV /venv
+ENV RTEMS_MAJOR=6
+ENV RTEMS_MINOR=1-rc2
+ENV RTEMS_VERSION=${RTEMS_MAJOR}.${RTEMS_MINOR}
+ENV RTEMS_ARCH=powerpc
+ENV RTEMS_BSP=beatnik
+ENV RTEMS_BASE=/rtems${RTEMS_VERSION}-${RTEMS_BSP}-legacy
+ENV RTEMS_ROOT=${RTEMS_BASE}/rtems/${RTEMS_VERSION}
+ENV PATH=${RTEMS_ROOT}/bin:${PATH}
+ENV LANG=en_GB.UTF-8
+
+FROM environment AS developer
 
 # build tools for x86 including python and busybox (for unzip and others)
 # https://docs.rtems.org/branches/master/user/start/preparation.html#host-computer
@@ -15,17 +28,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
     python3-venv \
     && rm -rf /var/lib/apt/lists/* && \
     busybox --install
-
-ENV VIRTUALENV /venv
-ENV RTEMS_MAJOR=6
-ENV RTEMS_MINOR=1-rc2
-ENV RTEMS_VERSION=${RTEMS_MAJOR}.${RTEMS_MINOR}
-ENV RTEMS_ARCH=powerpc
-ENV RTEMS_BSP=beatnik
-ENV RTEMS_BASE=/rtems${RTEMS_VERSION}-${RTEMS_BSP}-legacy
-ENV RTEMS_ROOT=${RTEMS_BASE}/rtems/${RTEMS_VERSION}
-ENV PATH=${RTEMS_ROOT}/bin:${PATH}
-ENV LANG=en_GB.UTF-8
 
 # setup a python venv - requried by the RSB to find 'python'
 RUN python3 -m venv ${VIRTUALENV}
@@ -73,5 +75,19 @@ RUN git submodule init && \
     ./waf && \
     ./waf install
 
+from environment AS runtime-prep
 
+# to make this container much smaller we take just the BSP and strip it
+# At present epics-base will not build in github with the developer version
+# because of the 7GB limit on the size GHA filesystem. Therefore this 'runtime'
+# container is used there.
+
+COPY from=developer ${RTEMS_ROOT} ${RTEMS_ROOT}
+
+RUN powerpc-rtems6-strip $(find ${RTEMS_ROOT}) 2>/dev/null
+RUN strip $(find ${RTEMS_ROOT}) 2>/dev/null
+
+from environment AS runtime
+
+COPY from=developer ${RTEMS_ROOT} ${RTEMS_ROOT}
 
