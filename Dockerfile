@@ -40,7 +40,7 @@ RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERS
 
 # build the cross compilation tool suite
 WORKDIR rsb/rtems
-RUN ../source-builder/sb-set-builder --jobs=6 --prefix=${RTEMS_ROOT} ${RTEMS_VERSION}/rtems-${RTEMS_ARCH}
+RUN ../source-builder/sb-set-builder --jobs=6 --prefix=${RTEMS_ROOT} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH}
 
 # get the kernel
 WORKDIR ${RTEMS_BASE}
