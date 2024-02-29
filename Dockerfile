@@ -42,7 +42,9 @@ RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERS
 
 # build the cross compilation tool suite
 WORKDIR rsb/rtems
-RUN ../source-builder/sb-set-builder --jobs=6 --prefix=${RTEMS_ROOT} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH}
+RUN ../source-builder/sb-set-builder --prefix=${RTEMS_ROOT} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
+    strip $(find ${RTEMS_ROOT}) && \
+
 
 # get the kernel
 WORKDIR ${RTEMS_BASE}
@@ -56,8 +58,7 @@ COPY VMEConfig.patch .
 RUN git apply VMEConfig.patch && \
     ./waf bspdefaults --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} > config.ini && \
     sed -i \
-        -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" \
-        -e "s|BUILD_TESTS = False|BUILD_TESTS = True|" \
+        -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|"
         config.ini && \
     ./waf configure --prefix=${RTEMS_ROOT}
 
@@ -77,20 +78,18 @@ RUN git submodule init && \
 
 from environment AS runtime_prep
 
-# to make this container much smaller we take just the BSP and strip it
+# To make this container much smaller we take just the BSP and remove any
+# unecessary files.
+#
 # At present epics-base will not build in github with the developer version
 # because of the 7GB limit on the size GHA filesystem. Therefore this 'runtime'
 # container is used there.
+#
+# Note: stripping the rtems libraries causes final executable link failure.
 
 COPY --from=developer ${RTEMS_ROOT} ${RTEMS_ROOT}
 
-RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-    binutils \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN powerpc-rtems6-strip $(find ${RTEMS_ROOT}) 2>/dev/null || true
-RUN strip $(find ${RTEMS_ROOT}) 2>/dev/null || true
+RUN echo 'will remove any redundant files here'
 
 from environment AS runtime
 
