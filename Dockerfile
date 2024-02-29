@@ -7,8 +7,8 @@ ENV RTEMS_VERSION=${RTEMS_MAJOR}.${RTEMS_MINOR}
 ENV RTEMS_ARCH=powerpc
 ENV RTEMS_BSP=beatnik
 ENV RTEMS_BASE=/rtems${RTEMS_VERSION}-${RTEMS_BSP}-legacy
-ENV RTEMS_ROOT=${RTEMS_BASE}/rtems/${RTEMS_VERSION}
-ENV PATH=${RTEMS_ROOT}/bin:${PATH}
+ENV RTEMS_PREFIX=${RTEMS_BASE}/rtems/${RTEMS_VERSION}
+ENV PATH=${RTEMS_PREFIX}/bin:${PATH}
 ENV LANG=en_GB.UTF-8
 
 FROM environment AS developer
@@ -42,8 +42,8 @@ RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERS
 
 # build the cross compilation tool suite
 WORKDIR rsb/rtems
-RUN ../source-builder/sb-set-builder --prefix=${RTEMS_ROOT} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
-    strip $(find ${RTEMS_ROOT}) && \
+RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
+    strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true
 
 
 # get the kernel
@@ -60,7 +60,7 @@ RUN git apply VMEConfig.patch && \
     sed -i \
         -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" > \
         config.ini && \
-    ./waf configure --prefix=${RTEMS_ROOT}
+    ./waf configure --prefix=${RTEMS_PREFIX}
 
 # build the Board Support Package with patched kernel
 RUN ./waf && \
@@ -72,7 +72,7 @@ RUN git clone git://git.rtems.org/rtems-net-legacy.git ${RTEMS_BASE}/rtems-net-l
 WORKDIR ${RTEMS_BASE}/rtems-net-legacy
 RUN git submodule init && \
     git submodule update && \
-    ./waf configure --prefix=${RTEMS_ROOT} --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} && \
+    ./waf configure --prefix=${RTEMS_PREFIX} --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} && \
     ./waf && \
     ./waf install
 
@@ -87,11 +87,13 @@ from environment AS runtime_prep
 #
 # Note: stripping the rtems libraries causes final executable link failure.
 
-COPY --from=developer ${RTEMS_ROOT} ${RTEMS_ROOT}
+COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
-RUN echo 'will remove any redundant files here'
+# remove the gcc compiler variants we do not need
+RUN for i in m403 m505 m603e m604 m8450 m860 me6500 nof ; do \
+    rm -r ${RTEMS_PREFIX}/lib/gcc/powerpc-rtems6/*/${i}; done
 
 from environment AS runtime
 
-COPY --from=runtime_prep ${RTEMS_ROOT} ${RTEMS_ROOT}
+COPY --from=runtime_prep ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
