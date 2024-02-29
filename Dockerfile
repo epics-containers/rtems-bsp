@@ -58,7 +58,7 @@ COPY VMEConfig.patch .
 RUN git apply VMEConfig.patch && \
     ./waf bspdefaults --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} > config.ini && \
     sed -i \
-        -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|"
+        -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" > \
         config.ini && \
     ./waf configure --prefix=${RTEMS_ROOT}
 
