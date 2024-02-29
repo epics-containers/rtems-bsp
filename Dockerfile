@@ -52,14 +52,15 @@ RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERS
     | tar -xJ && \
     mv rtems-${RTEMS_VERSION} kernel
 
+# restore indexes on stripped libraries
+RUN ranlib $(find ${RTEMS_PREFIX} -name '*.a')
+
 # # patch the kernel
 WORKDIR ${RTEMS_BASE}/kernel
 COPY VMEConfig.patch .
 RUN git apply VMEConfig.patch && \
     ./waf bspdefaults --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} > config.ini && \
-    sed -i \
-        -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" > \
-        config.ini && \
+    sed -i -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" config.ini && \
     ./waf configure --prefix=${RTEMS_PREFIX}
 
 # build the Board Support Package with patched kernel
@@ -89,9 +90,11 @@ from environment AS runtime_prep
 
 COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
-# remove the gcc compiler variants we do not need
-RUN for i in m403 m505 m603e m604 m8450 m860 me6500 nof ; do \
-    rm -r ${RTEMS_PREFIX}/lib/gcc/powerpc-rtems6/*/${i}; done
+# remove the gcc compiler variants and libs that we do not need
+RUN for i in m403 m505 m603e m604 m8540 m860 me6500 nof m7400/nof ; do \
+    rm -r ${RTEMS_PREFIX}/lib/gcc/powerpc-rtems6/*/${i} ; \
+    rm -r ${RTEMS_PREFIX}/powerpc-rtems6/lib/${i} ; \
+    done
 
 from environment AS runtime
 
