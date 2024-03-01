@@ -46,7 +46,7 @@ RUN local_patch/patch-rsb.sh
 # build the cross compilation tool suite and strip symbols to minimize size
 WORKDIR rsb/rtems
 RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
-    strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true && \
+    strip $(find ${RTEMS_PREFIX}) 2> /dev/null && \
     ranlib $(find ${RTEMS_PREFIX} -name '*.a')
 
 # get the kernel
@@ -77,7 +77,26 @@ RUN git submodule init && \
     ./waf && \
     ./waf install
 
-from environment AS runtime
+from environment AS runtime_prep
+
+RUN apt-get update -y && apt-get install -y binutils
+
+# To make this container target smaller we take just the BSP
+COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
+
+# strip symbols and run ran
+RUN strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true && \
+    ranlib $(find ${RTEMS_PREFIX} -name '*.a')
+
+from environment AS runtime_prep
+
+# To make this container target smaller we take just the BSP
+COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
+
+# remove docs
+RUN rm -r ${RTEMS_PREFIX}/share/doc
+
+from runtime_prep AS runtime
 
 # To make this container target smaller we take just the BSP
 COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}

@@ -22,7 +22,7 @@
 %{with_rtems_expat}
 %{with_rtems_gmp}
 %{with_rtems_gsed}
-%{with_rtems_texinfo}
+# %{with_rtems_texinfo}
 %{with_rtems_gdb}
 %{with_rtems_binutils}
 %{with_rtems_gcc}
