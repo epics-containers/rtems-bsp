@@ -1,0 +1,48 @@
+--- gcc-13.2.0/gcc/config/rs6000/t-rtems
++++ gcc-13.2.0/gcc/config/rs6000/t-rtems
+@@ -24,20 +24,9 @@ MULTILIB_MATCHES =
+ MULTILIB_EXCEPTIONS =
+ MULTILIB_REQUIRED =
+
+-MULTILIB_OPTIONS += mcpu=403/mcpu=505/mcpu=603e/mcpu=604/mcpu=860/mcpu=7400/mcpu=8540/mcpu=e6500
+-MULTILIB_DIRNAMES += m403 m505 m603e m604 m860 m7400 m8540 me6500
+-
+-MULTILIB_OPTIONS += m32/m64
+-MULTILIB_DIRNAMES += m32 m64
+-
+-MULTILIB_OPTIONS += msoft-float
+-MULTILIB_DIRNAMES += nof
+-
+-MULTILIB_OPTIONS += mno-altivec
+-MULTILIB_DIRNAMES += noaltivec
+-
+-MULTILIB_OPTIONS += mvrsave
+-MULTILIB_DIRNAMES += vrsave
++# only build for the m7400 powerpc variant
++MULTILIB_OPTIONS += mcpu=7400
++MULTILIB_DIRNAMES += m7400
+
+ MULTILIB_MATCHES  	+= ${MULTILIB_MATCHES_ENDIAN}
+ MULTILIB_MATCHES	+= ${MULTILIB_MATCHES_SYSV}
+@@ -61,19 +50,6 @@ MULTILIB_MATCHES	+= mcpu?8540=mcpu?8548
+
+ # Enumeration of multilibs
+
+-MULTILIB_REQUIRED += msoft-float
+-MULTILIB_REQUIRED += mcpu=403
+-MULTILIB_REQUIRED += mcpu=505
+-MULTILIB_REQUIRED += mcpu=603e
+-MULTILIB_REQUIRED += mcpu=603e/msoft-float
+-MULTILIB_REQUIRED += mcpu=604
+-MULTILIB_REQUIRED += mcpu=604/msoft-float
++# MULTILIB_REQUIRED += msoft-float
+ MULTILIB_REQUIRED += mcpu=7400
+-MULTILIB_REQUIRED += mcpu=7400/msoft-float
+-MULTILIB_REQUIRED += mcpu=8540/msoft-float
+-MULTILIB_REQUIRED += mcpu=860
+-MULTILIB_REQUIRED += mcpu=e6500/m32
+-MULTILIB_REQUIRED += mcpu=e6500/m32/mvrsave
+-MULTILIB_REQUIRED += mcpu=e6500/m32/msoft-float/mno-altivec
+-MULTILIB_REQUIRED += mcpu=e6500/m64
+-MULTILIB_REQUIRED += mcpu=e6500/m64/mvrsave
++# MULTILIB_REQUIRED += mcpu=7400/msoft-float

@@ -33,24 +33,21 @@ RUN apt-get update -y && apt-get upgrade -y && \
 RUN python3 -m venv ${VIRTUALENV}
 ENV PATH=${VIRTUALENV}/bin:${PATH}
 
-
 # get the RTEMS Source Builder
 WORKDIR ${RTEMS_BASE}
 RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-source-builder-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
     mv rtems-source-builder-${RTEMS_VERSION} rsb
 
-# build the cross compilation tool suite
-# and minimize the size of the installation - limiting to m7400 processors only
+# add in a gcc patch to only build for m7400
+COPY patches /
+RUN /patches/patch-rsb.sh
+
+# build the cross compilation tool suite and strip symbols to minimize size
 WORKDIR rsb/rtems
 RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
     strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true && \
-    ranlib $(find ${RTEMS_PREFIX} -name '*.a') && \
-    for i in m403 m505 m603e m604 m8540 m860 me6500 nof m7400/nof ; do \
-    rm -r ${RTEMS_PREFIX}/lib/gcc/powerpc-rtems6/*/${i} ; \
-    rm -r ${RTEMS_PREFIX}/powerpc-rtems6/lib/${i} ; \
-    done
-
+    ranlib $(find ${RTEMS_PREFIX} -name '*.a')
 
 # get the kernel
 WORKDIR ${RTEMS_BASE}
@@ -58,7 +55,7 @@ RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERS
     | tar -xJ && \
     mv rtems-${RTEMS_VERSION} kernel
 
-# # patch the kernel
+# patch the kernel
 WORKDIR ${RTEMS_BASE}/kernel
 COPY VMEConfig.patch .
 RUN git apply VMEConfig.patch && \
@@ -82,8 +79,6 @@ RUN git submodule init && \
 
 from environment AS runtime
 
-# To make this container much smaller we take just the BSP and remove any
-# unecessary files.
-
+# To make this container target smaller we take just the BSP
 COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
