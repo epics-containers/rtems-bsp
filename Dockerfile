@@ -40,8 +40,8 @@ RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERS
     mv rtems-source-builder-${RTEMS_VERSION} rsb
 
 # add in a gcc patch to only build for m7400
-COPY patches /
-RUN /patches/patch-rsb.sh
+COPY local_patch local_patch
+RUN local_patch/patch-rsb.sh
 
 # build the cross compilation tool suite and strip symbols to minimize size
 WORKDIR rsb/rtems
