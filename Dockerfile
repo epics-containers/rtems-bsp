@@ -79,17 +79,6 @@ RUN git submodule init && \
 
 from environment AS runtime_prep
 
-RUN apt-get update -y && apt-get install -y binutils
-
-# To make this container target smaller we take just the BSP
-COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
-
-# strip symbols and run ran
-RUN strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true && \
-    ranlib $(find ${RTEMS_PREFIX} -name '*.a')
-
-from environment AS runtime_prep
-
 # To make this container target smaller we take just the BSP
 COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
@@ -98,6 +87,5 @@ RUN rm -r ${RTEMS_PREFIX}/share/doc
 
 from runtime_prep AS runtime
 
-# To make this container target smaller we take just the BSP
 COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
