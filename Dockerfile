@@ -91,5 +91,5 @@ RUN rm -r \
 
 from runtime_prep AS runtime
 
-COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
+COPY --from=runtime_prep ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
