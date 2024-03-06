@@ -15,15 +15,14 @@ jobs:
       fail-fast: true
       max-parallel: 1 # take advantage of caching
       matrix:
-        target: [build, bsp]
+        target: [developer, runtime]
         include:
           - os: ubuntu-latest
             platforms: linux/amd64
-            name: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ matrix.target }}
 
     runs-on: ${{ matrix.os }}
     env:
-      TAGS: ${{ matrix.name }}:${{ github.ref_name }},${{ matrix.name }}:latest
+      TAG: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ matrix.target }}
     steps:
 
       - name: Log in to GitHub Docker Registry
@@ -40,7 +39,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           target: ${{ matrix.target }}
-          tags: ${{ env.TAGS }}
+          tags: ${{ env.TAG }}:${{ github.ref_name }},${{ env.TAG }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           load: true
@@ -52,6 +51,5 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: docker/build-push-action@v5
         with:
-          target: ${{ matrix.target }}
-          tags: ${{ env.TAGS }}
+          tags: ${{ env.TAG }}:${{ github.ref_name }},${{ env.TAG }}:latest
           push: true

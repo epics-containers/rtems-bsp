@@ -10,7 +10,7 @@ ENV RTEMS_BASE=/rtems6-${RTEMS_BSP}-legacy
 ENV RTEMS_PREFIX=${RTEMS_BASE}/rtems/${RTEMS_VERSION}
 ENV PATH=${RTEMS_PREFIX}/bin:${PATH}
 
-FROM environment AS build
+FROM environment AS developer
 
 # build tools for x86 including python and busybox (for unzip and others)
 # https://docs.rtems.org/branches/master/user/start/preparation.html#host-computer
@@ -76,7 +76,7 @@ RUN git submodule init && \
     ./waf && \
     ./waf install
 
-from environment AS bsp_prep
+from environment AS runtime_prep
 
 # To make this container target smaller we take just the BSP
 COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
@@ -88,7 +88,7 @@ RUN rm -r \
     ${RTEMS_PREFIX}/share/info \
     ${RTEMS_PREFIX}/powerpc-rtems6/lib/ldscripts
 
-from runtime_prep AS bsp
+from runtime_prep AS runtime
 
 COPY --from=runtime_prep ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
