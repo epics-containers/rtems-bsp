@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  build-push-images:
+  build:
     # pull requests are a duplicate of a branch push if within the same repo.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     permissions:
@@ -15,20 +15,16 @@ jobs:
       fail-fast: true
       max-parallel: 1 # take advantage of caching
       matrix:
-        target: [developer, runtime]
-        architecture: [linux]
+        target: [build, bsp]
         include:
           - os: ubuntu-latest
             platforms: linux/amd64
+            name: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ matrix.target }}
 
     runs-on: ${{ matrix.os }}
     env:
-      TAG: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ matrix.architecture }}-${{ matrix.target }}:${{ github.ref_name }}
+      TAGS: ${{ matrix.name }}:${{ github.ref_name }},${{ matrix.name }}:latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
 
       - name: Log in to GitHub Docker Registry
         uses: docker/login-action@v3
@@ -43,11 +39,8 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          platforms: ${{ matrix.platforms }}
           target: ${{ matrix.target }}
-          build-args: TARGET_ARCHITECTURE=${{ matrix.architecture }}
-          tags: ${{ env.TAG }}
+          tags: ${{ env.TAGS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           load: true
@@ -59,9 +52,6 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: docker/build-push-action@v5
         with:
-          context: .
-          platforms: ${{ matrix.platforms }}
           target: ${{ matrix.target }}
-          build-args: TARGET_ARCHITECTURE=${{ matrix.architecture }}
-          tags: ${{ env.TAG }}
+          tags: ${{ env.TAGS }}
           push: true

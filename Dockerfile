@@ -6,12 +6,11 @@ ENV RTEMS_MINOR=1-rc2
 ENV RTEMS_VERSION=${RTEMS_MAJOR}.${RTEMS_MINOR}
 ENV RTEMS_ARCH=powerpc
 ENV RTEMS_BSP=beatnik
-ENV RTEMS_BASE=/rtems${RTEMS_VERSION}-${RTEMS_BSP}-legacy
+ENV RTEMS_BASE=/rtems6-${RTEMS_BSP}-legacy
 ENV RTEMS_PREFIX=${RTEMS_BASE}/rtems/${RTEMS_VERSION}
 ENV PATH=${RTEMS_PREFIX}/bin:${PATH}
-ENV LANG=en_GB.UTF-8
 
-FROM environment AS developer
+FROM environment AS build
 
 # build tools for x86 including python and busybox (for unzip and others)
 # https://docs.rtems.org/branches/master/user/start/preparation.html#host-computer
@@ -77,7 +76,7 @@ RUN git submodule init && \
     ./waf && \
     ./waf install
 
-from environment AS runtime_prep
+from environment AS bsp_prep
 
 # To make this container target smaller we take just the BSP
 COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
@@ -89,7 +88,7 @@ RUN rm -r \
     ${RTEMS_PREFIX}/share/info \
     ${RTEMS_PREFIX}/powerpc-rtems6/lib/ldscripts
 
-from runtime_prep AS runtime
+from runtime_prep AS bsp
 
 COPY --from=runtime_prep ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
