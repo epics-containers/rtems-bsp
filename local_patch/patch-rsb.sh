@@ -1,7 +1,7 @@
 #!/bin/bash
 
 THIS=$(realpath $(dirname $0))
-RSB=${RTEMS_BASE}/rsb
+RSB=${RTEMS_TOP}/rsb
 
 set -xe
 

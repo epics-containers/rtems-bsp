@@ -6,8 +6,8 @@ ENV RTEMS_MINOR=1-rc2
 ENV RTEMS_VERSION=${RTEMS_MAJOR}.${RTEMS_MINOR}
 ENV RTEMS_ARCH=powerpc
 ENV RTEMS_BSP=beatnik
-ENV RTEMS_BASE=/rtems6-${RTEMS_BSP}-legacy
-ENV RTEMS_PREFIX=${RTEMS_BASE}/rtems/${RTEMS_VERSION}
+ENV RTEMS_TOP=/rtems6-${RTEMS_BSP}-legacy
+ENV RTEMS_PREFIX=${RTEMS_TOP}/rtems/${RTEMS_VERSION}
 ENV PATH=${RTEMS_PREFIX}/bin:${PATH}
 
 FROM environment AS developer
@@ -33,7 +33,7 @@ RUN python3 -m venv ${VIRTUALENV}
 ENV PATH=${VIRTUALENV}/bin:${PATH}
 
 # get the RTEMS Source Builder
-WORKDIR ${RTEMS_BASE}
+WORKDIR ${RTEMS_TOP}
 RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-source-builder-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
     mv rtems-source-builder-${RTEMS_VERSION} rsb
@@ -49,13 +49,13 @@ RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rte
     ranlib $(find ${RTEMS_PREFIX} -name '*.a')
 
 # get the kernel
-WORKDIR ${RTEMS_BASE}
+WORKDIR ${RTEMS_TOP}
 RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
     mv rtems-${RTEMS_VERSION} kernel
 
 # patch the kernel
-WORKDIR ${RTEMS_BASE}/kernel
+WORKDIR ${RTEMS_TOP}/kernel
 COPY VMEConfig.patch .
 RUN git apply VMEConfig.patch && \
     ./waf bspdefaults --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} > config.ini && \
@@ -66,10 +66,10 @@ RUN git apply VMEConfig.patch && \
 RUN ./waf && \
     ./waf install
 
-RUN git clone git://git.rtems.org/rtems-net-legacy.git ${RTEMS_BASE}/rtems-net-legacy
+RUN git clone git://git.rtems.org/rtems-net-legacy.git ${RTEMS_TOP}/rtems-net-legacy
 
 # add in the legacy network stack
-WORKDIR ${RTEMS_BASE}/rtems-net-legacy
+WORKDIR ${RTEMS_TOP}/rtems-net-legacy
 RUN git submodule init && \
     git submodule update && \
     ./waf configure --prefix=${RTEMS_PREFIX} --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} && \
@@ -89,6 +89,9 @@ RUN rm -r \
     ${RTEMS_PREFIX}/powerpc-rtems6/lib/ldscripts
 
 from runtime_prep AS runtime
+
+# environment variables for epics-base build
+ENV RTEMS_BASE=${RTEMS_PREFIX}
 
 COPY --from=runtime_prep ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
