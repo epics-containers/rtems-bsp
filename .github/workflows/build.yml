@@ -13,7 +13,6 @@ jobs:
       packages: write
     strategy:
       fail-fast: true
-      max-parallel: 1 # take advantage of caching
       matrix:
         target: [developer, runtime]
         # add more targets here and add a Dockerfile.${{ matrix.target }} to the repo
