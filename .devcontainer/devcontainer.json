@@ -1,7 +1,7 @@
 // For format details, see https://containers.dev/implementors/json_reference/
 {
     "name": "epics-containers IOC devcontainer",
-    "image": "ghcr.io/epics-containers/rtems6-powerpc-linux-developer:6.2rc1-ec1b1",
+    "image": "ghcr.io/epics-containers/rtems6-powerpc-linux-developer:6.2rc1ec2b3",
     "remoteEnv": {
         // allows X11 apps to run inside the container
         "DISPLAY": "${localEnv:DISPLAY}",

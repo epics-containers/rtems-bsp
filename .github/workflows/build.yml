@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  build-push-images:
+  build:
     # pull requests are a duplicate of a branch push if within the same repo.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     permissions:
@@ -13,22 +13,16 @@ jobs:
       packages: write
     strategy:
       fail-fast: true
-      max-parallel: 1 # take advantage of caching
       matrix:
         target: [developer, runtime]
-        architecture: [linux]
-        include:
-          - os: ubuntu-latest
-            platforms: linux/amd64
+        # add more targets here and add a Dockerfile.${{ matrix.target }} to the repo
+        target_architecture: [beatnik]
 
-    runs-on: ${{ matrix.os }}
+
+    runs-on: ubuntu-latest
     env:
-      TAG: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ matrix.architecture }}-${{ matrix.target }}:${{ github.ref_name }}
+      TAG: ghcr.io/${{ github.repository_owner }}/rtems-${{ matrix.target_architecture }}-${{ matrix.target }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
 
       - name: Log in to GitHub Docker Registry
         uses: docker/login-action@v3
@@ -43,13 +37,11 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          platforms: ${{ matrix.platforms }}
+          file: Dockerfile.${{ matrix.target_architecture }}
           target: ${{ matrix.target }}
-          build-args: TARGET_ARCHITECTURE=${{ matrix.architecture }}
-          tags: ${{ env.TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ env.TAG }}:${{ github.ref_name }},${{ env.TAG }}:latest
+          cache-from: type=gha,scope=${{ matrix.target }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.target }}
           load: true
 
       - name: Test image
@@ -59,9 +51,6 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: docker/build-push-action@v5
         with:
-          context: .
-          platforms: ${{ matrix.platforms }}
-          target: ${{ matrix.target }}
-          build-args: TARGET_ARCHITECTURE=${{ matrix.architecture }}
-          tags: ${{ env.TAG }}
+          file: Dockerfile.${{ matrix.target_architecture }}
+          tags: ${{ env.TAG }}:${{ github.ref_name }},${{ env.TAG }}:latest
           push: true
