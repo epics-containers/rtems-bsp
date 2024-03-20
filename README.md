@@ -17,6 +17,7 @@ The repo is designed to allow for multiple target architectures. At present the 
   - patches for MVME5500 boards used at DLS
   - legacy network stack
   - processor is m4700 with hardware floating point support
+  - patch to gcc source to only compile for the single powerpc variant
 
 
 Acknowledgements
