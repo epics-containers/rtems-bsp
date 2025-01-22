@@ -8,4 +8,4 @@ set -xe
 mkdir -p $RSB/rtems/patches
 cp $THIS/gcc.patch $RSB/rtems/patches
 
-cp $THIS/rtems-gcc-13.2-newlib-head.cfg $RSB/rtems/config/tools/rtems-gcc-13.2-newlib-head.cfg
+cp $THIS/rtems-gcc-13.3-newlib-head.cfg $RSB/rtems/config/tools

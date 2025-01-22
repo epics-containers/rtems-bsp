@@ -16,16 +16,16 @@ Motivation: keep the containers small.
 - The gcc config for this is
   - `rtems/config/tools/rtems-gcc-13.2-newlib-head.cfg`
 - The tar file it gets is
-  - `https://ftp.rtems.org/pub/rtems/releases/6/rc/6.1-rc2/sources/gcc-13.2.0.tar.xz`
+  - `https://ftp.rtems.org/pub/rtems/releases/6/rc/6.1-rc2/sources/gcc-13.3.0.tar.xz`
 - Which ends up in
-  - `sources/gcc-13.2.0.tar.xz`
+  - `sources/gcc-13.3.0.tar.xz`
 
 It looks like we need to add something like this:
 ```
-%patch add gcc %{rtems_gcc_patches}/gcc-core-4.4.7-rtems4.10-20120314.diff
-%hash md5 gcc-core-4.4.7-rtems4.10-20120314.diff 084c9085c255b1f6a9204e239dde0579
+%patch add gcc file:///local_patch/gcc.patch
+%hash sha256 gcc.patch 9c2b548cf4c2b4dd202993b221afef14bd1ce9b799b2209755507190648fdffe
 ```
-to `rtems-gcc-13.2-newlib-head.cfg` in order to patch the gcc build.
+to `rtems-gcc-13.3-newlib-head.cfg` in order to patch the gcc build.
 
 Note the value of %{rtems_gcc_pathces} gets set here:
 - `rtems/config/rtems-urls.bset`
@@ -38,3 +38,37 @@ The above tar file is expanded into
 - `rtems/build/powerpc-rtems6-gcc-13.2.0-newlib-3cacedb-x86_64-linux-gnu-1`
 
 So just need to look through that and work out a patch! :-O
+
+## UPDATE Jan 2024
+
+So what needs patching is defined in local_patch/gcc.patch.
+BUT NOTE: this essentially overriding the two Make MACROS:-
+- MULTILIB_OPTIONS
+- MULTILIB_DIRNAMES
+
+Surely it would be better to work out how to pass overrides for these to the
+make command line.
+
+---
+
+# Notes on attempts to change compiler options
+
+https://docs.rtems.org/docs/4.11.0/rsb
+
+To run the source builder manually (NOT IN TMP! due to executable permissions):
+```bash
+curl -O https://ftp.rtems.org/pub/rtems/releases/6/6.1/sources/rtems-source-builder-6.1.tar.xz
+tar -xJf rtems-source-builder-6.1.tar.xz
+cd rtems-source-builder-6.1/rtems
+# Note that the 6 directory is found in rtems-source-builder-6.1/rtems/config
+# Note that no-clean allows us to make changes and test re-running the build quickly
+../source-builder/sb-set-builder --prefix=../rtems-build 6/rtems-powerpc.bset --no-clean
+```
+
+
+../source-builder/sb-set-builder can be passed --dry-run and other args
+see [debugging](https://docs.rtems.org/docs/4.11.0/rsb/configuration.html#debugging).
+Also note that the log file appears in cwd as
+```
+rsb-log-202xxxxx-xxxxx.txt
+```

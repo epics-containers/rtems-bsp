@@ -66,11 +66,12 @@ RUN git apply VMEConfig.patch && \
 RUN ./waf && \
     ./waf install
 
-RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-net-legacy-${RTEMS_VERSION}.tar.xz \
+RUN cd ${RTEMS_TOP} && \
+    curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-net-legacy-${RTEMS_VERSION}.tar.xz \
     | tar -xJ
 
 # add in the legacy network stack
-WORKDIR ${RTEMS_TOP}/rtems-net-legacy
+WORKDIR ${RTEMS_TOP}/rtems-net-legacy-${RTEMS_VERSION}
 RUN ./waf configure --prefix=${RTEMS_PREFIX} --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} && \
     ./waf && \
     ./waf install
