@@ -45,8 +45,8 @@ RUN local_patch/patch-rsb.sh
 # build the cross compilation tool suite and strip symbols to minimize size
 WORKDIR rsb/rtems
 RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
-    strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true && \
-    ranlib $(find ${RTEMS_PREFIX} -name '*.a')
+    strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true
+RUN ranlib $(find ${RTEMS_PREFIX} -name '*.a')
 
 # get the kernel
 WORKDIR ${RTEMS_TOP}
@@ -66,13 +66,12 @@ RUN git apply VMEConfig.patch && \
 RUN ./waf && \
     ./waf install
 
-RUN git clone git://git.rtems.org/rtems-net-legacy.git ${RTEMS_TOP}/rtems-net-legacy
+RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-net-legacy-${RTEMS_VERSION}.tar.xz \
+    | tar -xJ
 
 # add in the legacy network stack
 WORKDIR ${RTEMS_TOP}/rtems-net-legacy
-RUN git submodule init && \
-    git submodule update && \
-    ./waf configure --prefix=${RTEMS_PREFIX} --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} && \
+RUN ./waf configure --prefix=${RTEMS_PREFIX} --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} && \
     ./waf && \
     ./waf install
 
