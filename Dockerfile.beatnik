@@ -2,7 +2,7 @@ FROM ubuntu:22.04 as environment
 
 ENV VIRTUALENV /venv
 ENV RTEMS_MAJOR=6
-ENV RTEMS_MINOR=1-rc2
+ENV RTEMS_MINOR=1
 ENV RTEMS_VERSION=${RTEMS_MAJOR}.${RTEMS_MINOR}
 ENV RTEMS_ARCH=powerpc
 ENV RTEMS_BSP=beatnik
@@ -34,7 +34,7 @@ ENV PATH=${VIRTUALENV}/bin:${PATH}
 
 # get the RTEMS Source Builder
 WORKDIR ${RTEMS_TOP}
-RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-source-builder-${RTEMS_VERSION}.tar.xz \
+RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-source-builder-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
     mv rtems-source-builder-${RTEMS_VERSION} rsb
 
@@ -50,7 +50,7 @@ RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rte
 
 # get the kernel
 WORKDIR ${RTEMS_TOP}
-RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-${RTEMS_VERSION}.tar.xz \
+RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
     mv rtems-${RTEMS_VERSION} kernel
 
