@@ -53,8 +53,10 @@ make command line.
 
 # Notes on attempts to change compiler options
 
+## RTEMS Source Builder
 https://docs.rtems.org/docs/4.11.0/rsb
 
+## Testing Changes
 To run the source builder manually (NOT IN TMP! due to executable permissions):
 ```bash
 curl -O https://ftp.rtems.org/pub/rtems/releases/6/6.1/sources/rtems-source-builder-6.1.tar.xz
@@ -65,10 +67,43 @@ cd rtems-source-builder-6.1/rtems
 ../source-builder/sb-set-builder --prefix=../rtems-build 6/rtems-powerpc.bset --no-clean
 ```
 
-
+## Debugging
 ../source-builder/sb-set-builder can be passed --dry-run and other args
 see [debugging](https://docs.rtems.org/docs/4.11.0/rsb/configuration.html#debugging).
 Also note that the log file appears in cwd as
 ```
 rsb-log-202xxxxx-xxxxx.txt
 ```
+
+## Intro
+
+The gcc compiler will usually build for multiple versions of powerpc and this takes nearly an hour on GitHub Actions. The fix is to build only for DLS’ power PC variant, the m4700 (with HW floating point).
+
+## How
+
+I achieved this through patching the file `gcc-13.3.0/gcc/config/rs6000/t-rtems` in the gcc package:-
+
+(patch file)[https://github.com/epics-containers/rtems-bsp/blob/03045ced0cf593571875e418f853aec5576a7bbb/local\_patch/gcc.patch](https://github.com/epics-containers/rtems-bsp/blob/03045ced0cf593571875e418f853aec5576a7bbb/local_patch/gcc.patch)
+
+The reason it is in the rs6000 is perhaps historical? It is an early powerPC IBM machine name.
+
+It is also the only config that mentions m4700 as one of the multi-arch targets (that is how I found it)
+
+## Improvement Attempt
+
+I felt that this patching was overkill and I should be able to pass values for the Macros MULTILIB_OPTIONS MULTILIB_DIRNAMES on the make line.
+
+
+
+I tried this by changing the bset file in the RTEMS Source Builder:
+
+file : source-builder/config/gcc-common-1.cfg
+
+change to make command: 
+
+```
+  %define _make_opts MULTILIB_OPTIONS='mcpu=7400' MULTILIB_REQUIRED='mcpu=7400' MULTILIB_DIRNAMES='m7400'
+  %{__make} -w %{?_smp_mflags} %{_make_opts} all
+```
+
+This failed to work and I assume that is because autobuild is getting in between the global make and the actual build make.
