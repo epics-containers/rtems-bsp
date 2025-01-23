@@ -1,5 +1,5 @@
---- gcc-13.2.0/gcc/config/rs6000/t-rtems
-+++ gcc-13.2.0/gcc/config/rs6000/t-rtems
+--- gcc-13.3.0/gcc/config/rs6000/t-rtems
++++ gcc-13.3.0/gcc/config/rs6000/t-rtems
 @@ -24,20 +24,9 @@ MULTILIB_MATCHES =
  MULTILIB_EXCEPTIONS =
  MULTILIB_REQUIRED =

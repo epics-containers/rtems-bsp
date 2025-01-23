@@ -2,7 +2,7 @@ FROM ubuntu:22.04 as environment
 
 ENV VIRTUALENV /venv
 ENV RTEMS_MAJOR=6
-ENV RTEMS_MINOR=1-rc2
+ENV RTEMS_MINOR=1
 ENV RTEMS_VERSION=${RTEMS_MAJOR}.${RTEMS_MINOR}
 ENV RTEMS_ARCH=powerpc
 ENV RTEMS_BSP=beatnik
@@ -34,7 +34,7 @@ ENV PATH=${VIRTUALENV}/bin:${PATH}
 
 # get the RTEMS Source Builder
 WORKDIR ${RTEMS_TOP}
-RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-source-builder-${RTEMS_VERSION}.tar.xz \
+RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-source-builder-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
     mv rtems-source-builder-${RTEMS_VERSION} rsb
 
@@ -45,12 +45,12 @@ RUN local_patch/patch-rsb.sh
 # build the cross compilation tool suite and strip symbols to minimize size
 WORKDIR rsb/rtems
 RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
-    strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true && \
-    ranlib $(find ${RTEMS_PREFIX} -name '*.a')
+    strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true
+RUN ranlib $(find ${RTEMS_PREFIX} -name '*.a')
 
 # get the kernel
 WORKDIR ${RTEMS_TOP}
-RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/rc/${RTEMS_VERSION}/sources/rtems-${RTEMS_VERSION}.tar.xz \
+RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
     mv rtems-${RTEMS_VERSION} kernel
 
@@ -66,13 +66,13 @@ RUN git apply VMEConfig.patch && \
 RUN ./waf && \
     ./waf install
 
-RUN git clone git://git.rtems.org/rtems-net-legacy.git ${RTEMS_TOP}/rtems-net-legacy
+RUN cd ${RTEMS_TOP} && \
+    curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-net-legacy-${RTEMS_VERSION}.tar.xz \
+    | tar -xJ
 
 # add in the legacy network stack
-WORKDIR ${RTEMS_TOP}/rtems-net-legacy
-RUN git submodule init && \
-    git submodule update && \
-    ./waf configure --prefix=${RTEMS_PREFIX} --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} && \
+WORKDIR ${RTEMS_TOP}/rtems-net-legacy-${RTEMS_VERSION}
+RUN ./waf configure --prefix=${RTEMS_PREFIX} --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} && \
     ./waf && \
     ./waf install
 
