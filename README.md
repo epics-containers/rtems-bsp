@@ -13,7 +13,7 @@ Supported BSPs
 The repo is designed to allow for multiple target architectures. At present the list of BSPs is only 1 long:
 
 - mvme5500
-  - rtems version: 6.1-rc2
+  - rtems version: 6.1 RELEASE
   - patches for MVME5500 boards used at DLS
   - legacy network stack
   - processor is m4700 with hardware floating point support
