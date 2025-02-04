@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as environment
+FROM ubuntu:24.04 as environment
 
 ENV VIRTUALENV /venv
 ENV RTEMS_MAJOR=6
