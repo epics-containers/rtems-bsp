@@ -2,7 +2,7 @@
 {
     "name": "epics-containers IOC devcontainer",
     // WARNING: using a github built image because podman fails to build the image
-    "image": "ghcr.io/epics-containers/rtems-beatnik-developer:6.1ec1",
+    "image": "ghcr.io/epics-containers/rtems-beatnik-developer:6.1ec2",
     // "build": {
     //     "dockerfile": "../Dockerfile.beatnik",
     //     "target": "developer",
