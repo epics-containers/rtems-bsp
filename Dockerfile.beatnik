@@ -42,33 +42,34 @@ RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION
 COPY local_patch local_patch
 RUN local_patch/patch-rsb.sh
 
-# build the cross compilation tool suite and strip symbols to minimize size
-WORKDIR rsb/rtems
-RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
-    strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true
-RUN ranlib $(find ${RTEMS_PREFIX} -name '*.a')
-
 # get the kernel
-WORKDIR ${RTEMS_TOP}
 RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
     mv rtems-${RTEMS_VERSION} kernel
 
 # patch the kernel
-WORKDIR ${RTEMS_TOP}/kernel
-COPY VMEConfig.patch .
-RUN git apply VMEConfig.patch && \
+RUN git apply local_patch/VMEConfig.patch && \
+    cd kernel && \
     ./waf bspdefaults --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} > config.ini && \
-    sed -i -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" config.ini && \
+    sed -i -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" config.ini
+
+# get legacy networking
+RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-net-legacy-${RTEMS_VERSION}.tar.xz \
+    | tar -xJ
+
+# build the cross compilation tool suite and strip symbols to minimize size
+WORKDIR ${RTEMS_TOP}/rsb/rtems
+RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rtems-${RTEMS_ARCH} && \
+    strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true
+RUN ranlib $(find ${RTEMS_PREFIX} -name '*.a')
+
+# configure the kernel
+RUN cd {RTEMS_TOP}/kernel && \
     ./waf configure --prefix=${RTEMS_PREFIX}
 
 # build the Board Support Package with patched kernel
 RUN ./waf && \
     ./waf install
-
-RUN cd ${RTEMS_TOP} && \
-    curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-net-legacy-${RTEMS_VERSION}.tar.xz \
-    | tar -xJ
 
 # add in the legacy network stack
 WORKDIR ${RTEMS_TOP}/rtems-net-legacy-${RTEMS_VERSION}
