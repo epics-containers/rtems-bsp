@@ -1,7 +1,13 @@
 // For format details, see https://containers.dev/implementors/json_reference/
 {
     "name": "epics-containers IOC devcontainer",
-    "image": "ghcr.io/epics-containers/rtems6-powerpc-linux-developer:6.2rc1ec2b3",
+    // WARNING: using a github built image because podman fails to build the image
+    "image": "ghcr.io/epics-containers/rtems-beatnik-developer:6.1ec3",
+    // "build": {
+    //     "dockerfile": "../Dockerfile.beatnik",
+    //     "target": "developer",
+    //     "args": {}
+    // },
     "remoteEnv": {
         // allows X11 apps to run inside the container
         "DISPLAY": "${localEnv:DISPLAY}",
@@ -9,12 +15,11 @@
         "EC_PROJECT": "${localWorkspaceFolderBasename}"
     },
     "features": {
-        // add quality of life features for developers including git config integration
-        "ghcr.io/devcontainers/features/common-utils:2": {
-            // don't upgrade to make this similar to the runtime container
-            "upgradePackages": false
-        }
+        // add in eternal history and other bash features
+        "ghcr.io/diamondlightsource/devcontainer-features/bash-config:1.0.0": {}
     },
+    // outside of the container setup
+    "initializeCommand": "bash .devcontainer/initializeCommand ${devcontainerId}",
     // IMPORTANT for this devcontainer to work with docker EC_REMOTE_USER must be
     // set to vscode. You will run as vscode with full sudo rights.
     // For podman it should be left blank. You will run as root but host mounts
@@ -33,9 +38,6 @@
             ]
         }
     },
-    // Make sure the files we are mapping into the container exist on the host
-    // You can place any other outside of the container before-launch commands here
-    "initializeCommand": "bash .devcontainer/initializeCommand ${devcontainerId}",
     // Hooks the global .bashprofile_dev_container but also can add any other commands
     // to run in the container at creation in here
     "postCreateCommand": "bash .devcontainer/postCreateCommand ${devcontainerId}",
