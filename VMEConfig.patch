@@ -1,16 +1,7 @@
-diff --git a/kernel/bsps/powerpc/beatnik/config/beatnik.cfg b/kernel/bsps/powerpc/beatnik/config/beatnik.cfg
+diff --git a/bsps/powerpc/beatnik/config/beatnik.cfg b/bsps/powerpc/beatnik/config/beatnik.cfg
 index 7df626a..2e6884b 100644
---- a/kernel/bsps/powerpc/beatnik/config/beatnik.cfg
-+++ b/kernel/bsps/powerpc/beatnik/config/beatnik.cfg
-@@ -12,7 +12,7 @@ RTEMS_PPC_EXCEPTION_PROCESSING_MODEL=new
- RTEMS_BSP_FAMILY=beatnik
- 
- #  This contains the compiler options necessary to select the CPU model
--#  and (hopefully) optimize for it. 
-+#  and (hopefully) optimize for it.
- #
- CPU_CFLAGS = -mcpu=7400
- #T. Straumann; disable sdata=eabi for now until CEXP supports it -meabi -msdata=eabi
+--- a/bsps/powerpc/beatnik/config/beatnik.cfg
++++ b/bsps/powerpc/beatnik/config/beatnik.cfg
 @@ -21,7 +21,7 @@ CPU_CFLAGS = -mcpu=7400
  # -O4 is ok for RTEMS
  # NOTE: some level of -O may be actually required by inline assembler
@@ -20,10 +11,10 @@ index 7df626a..2e6884b 100644
  CFLAGS_OPTIMIZE_V += -ffunction-sections -fdata-sections
  
  LDFLAGS = -Wl,--gc-sections
-diff --git a/kernel/bsps/powerpc/beatnik/include/bsp/VMEConfig.h b/kernel/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
+diff --git a/bsps/powerpc/beatnik/include/bsp/VMEConfig.h b/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
 index 986a016..535abc1 100644
---- a/kernel/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
-+++ b/kernel/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
+--- a/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
++++ b/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
 @@ -67,7 +67,8 @@
  /* start of the A32 window on the VME bus
   * TODO: this should perhaps be a configuration option
