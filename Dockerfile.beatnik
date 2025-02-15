@@ -12,19 +12,18 @@ ENV PATH=${RTEMS_PREFIX}/bin:${PATH}
 
 FROM environment AS developer
 
-# build tools for x86 including python and busybox (for unzip and others)
+# build tools for x86 including busybox (for unzip and others)
 # https://docs.rtems.org/branches/master/user/start/preparation.html#host-computer
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
     bison \
     busybox \
+    ca-certificates \
     curl \
     build-essential \
     diffutils \
     flex \
     git \
-    python3-dev \
-    python3-venv \
     && rm -rf /var/lib/apt/lists/* && \
     busybox --install
 
@@ -35,7 +34,7 @@ RUN curl -LsSf https://github.com/astral-sh/uv/releases/download/0.6.0/uv-x86_64
     tar -xzf uv.gz -C /usr/bin --strip-components=1 && \
     rm uv.gz
 
-# setup a python venv requried by the RSB, set up pip for iocs to use
+# a python venv is requried by the RSB, set up pip for IOCS based on this image
 ENV PATH=${VIRTUALENV}/bin:${PATH}
 RUN uv venv --python 3.11 ${VIRTUALENV} && \
     python -m ensurepip --upgrade && \
