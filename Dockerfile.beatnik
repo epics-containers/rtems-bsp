@@ -63,12 +63,10 @@ RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rte
     strip $(find ${RTEMS_PREFIX}) 2> /dev/null || true
 RUN ranlib $(find ${RTEMS_PREFIX} -name '*.a')
 
-# configure the kernel
-RUN cd ${RTEMS_TOP}/kernel && \
-    ./waf configure --prefix=${RTEMS_PREFIX}
-
 # build the Board Support Package with patched kernel
-RUN ./waf && \
+WORKDIR ${RTEMS_TOP}/kernel
+RUN ./waf configure --prefix=${RTEMS_PREFIX} && \
+    ./waf && \
     ./waf install
 
 # add in the legacy network stack
