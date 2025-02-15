@@ -36,7 +36,7 @@ RUN curl -LsSf https://github.com/astral-sh/uv/releases/download/0.6.0/uv-x86_64
     rm uv.gz
 
 # setup a python venv - requried by the RSB to find 'python'
-RUN uv venv --python 3.11 ${VIRTUALENV}
+RUN uv venv --python 3.10 ${VIRTUALENV}
 ENV PATH=${VIRTUALENV}/bin:${PATH}
 
 # get the RTEMS Source Builder
@@ -71,7 +71,7 @@ RUN ../source-builder/sb-set-builder --prefix=${RTEMS_PREFIX} ${RTEMS_MAJOR}/rte
 RUN ranlib $(find ${RTEMS_PREFIX} -name '*.a')
 
 # configure the kernel
-RUN cd {RTEMS_TOP}/kernel && \
+RUN cd ${RTEMS_TOP}/kernel && \
     ./waf configure --prefix=${RTEMS_PREFIX}
 
 # build the Board Support Package with patched kernel
