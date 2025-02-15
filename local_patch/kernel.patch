@@ -1,0 +1,27 @@
+diff --git a/kernel/bsps/powerpc/beatnik/config/beatnik.cfg b/kernel/bsps/powerpc/beatnik/config/beatnik.cfg
+index 7df626a..2e6884b 100644
+--- a/kernel/bsps/powerpc/beatnik/config/beatnik.cfg
++++ b/kernel/bsps/powerpc/beatnik/config/beatnik.cfg
+@@ -21,7 +21,7 @@ CPU_CFLAGS = -mcpu=7400
+ # -O4 is ok for RTEMS
+ # NOTE: some level of -O may be actually required by inline assembler
+ #CFLAGS_OPTIMIZE_V=-O4 -fno-keep-inline-functions
+-CFLAGS_OPTIMIZE_V = -O2 -g
++CFLAGS_OPTIMIZE_V = -O2 -g -mstrict-align
+ CFLAGS_OPTIMIZE_V += -ffunction-sections -fdata-sections
+
+ LDFLAGS = -Wl,--gc-sections
+diff --git a/kernel/bsps/powerpc/beatnik/include/bsp/VMEConfig.h b/kernel/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
+index 986a016..535abc1 100644
+--- a/kernel/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
++++ b/kernel/bsps/powerpc/beatnik/include/bsp/VMEConfig.h
+@@ -67,7 +67,8 @@
+ /* start of the A32 window on the VME bus
+  * TODO: this should perhaps be a configuration option
+  */
+-#define _VME_A32_WIN0_ON_VME  0x20000000
++//#define _VME_A32_WIN0_ON_VME  0x20000000
++#define _VME_A32_WIN0_ON_VME  0x00800000
+
+ /* if _VME_DRAM_OFFSET is defined, the BSP
+  * will map our RAM onto the VME bus, starting
