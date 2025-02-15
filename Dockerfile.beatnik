@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 as environment
+FROM ubuntu:22.04 as environment
 
 ENV VIRTUALENV /venv
 ENV RTEMS_MAJOR=6
@@ -28,15 +28,8 @@ RUN apt-get update -y && apt-get upgrade -y && \
     && rm -rf /var/lib/apt/lists/* && \
     busybox --install
 
-# use uv to make a python3.11 venv because the RSB does not yet support python3.12
-# see https://gitlab.rtems.org/rtems/tools/rtems-source-builder/-/issues/87
-RUN curl -LsSf https://github.com/astral-sh/uv/releases/download/0.6.0/uv-x86_64-unknown-linux-gnu.tar.gz -o uv.gz && \
-    echo cd1ac8840037940fa69fd18c51dd60ae uv.gz | md5sum -c && \
-    tar -xzf uv.gz -C /usr/bin --strip-components=1 && \
-    rm uv.gz
-
 # setup a python venv - requried by the RSB to find 'python'
-RUN uv venv --python 3.10 ${VIRTUALENV}
+RUN python3 -mvenv ${VIRTUALENV}
 ENV PATH=${VIRTUALENV}/bin:${PATH}
 
 # get the RTEMS Source Builder
