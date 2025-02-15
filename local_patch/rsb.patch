@@ -1,0 +1,29 @@
+diff --git a/rsb/rtems/config/tools/rtems-default-tools.bset b/rsb/rtems/config/tools/rtems-default-tools.bset
+index 68d4bc2..87f5124 100644
+--- a/rsb/rtems/config/tools/rtems-default-tools.bset
++++ b/rsb/rtems/config/tools/rtems-default-tools.bset
+@@ -33,7 +33,8 @@ devel/gmp-internal
+ devel/mpfr-internal
+ %{with_rtems_gsed}
+ %{with_rtems_texinfo}
+-%{with_rtems_gdb}
++# don't build gdb as it is fussy about python and not usable on our boards
++#%{with_rtems_gdb}
+ %{with_rtems_binutils}
+ %{with_rtems_gcc}
+ %{with_rtems_tools}
+diff --git a/rsb/rtems/config/tools/rtems-gcc-13.3-newlib-head.cfg b/rsb/rtems/config/tools/rtems-gcc-13.3-newlib-head.cfg
+index 3fc4145..3508016 100644
+--- a/rsb/rtems/config/tools/rtems-gcc-13.3-newlib-head.cfg
++++ b/rsb/rtems/config/tools/rtems-gcc-13.3-newlib-head.cfg
+@@ -24,6 +24,10 @@
+
+ %define gcc_pre_install %include tools/rtems-install-stdcxx.cfg
+
++# patch gcc to build only for m4700 powerpc variant
++%patch add gcc file:///local_patch/gcc.patch
++%hash sha256 gcc.patch 9c2b548cf4c2b4dd202993b221afef14bd1ce9b799b2209755507190648fdffe
++
+ %define with_threads 1
+ %define with_plugin 0
+ %define with_iconv 1

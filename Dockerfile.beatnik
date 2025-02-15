@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as environment
+FROM ubuntu:24.04 as environment
 
 ENV VIRTUALENV /venv
 ENV RTEMS_MAJOR=6
@@ -28,27 +28,30 @@ RUN apt-get update -y && apt-get upgrade -y && \
     && rm -rf /var/lib/apt/lists/* && \
     busybox --install
 
+# use uv to make a python3.11 venv because the RSB does not yet support python3.12
+# see https://gitlab.rtems.org/rtems/tools/rtems-source-builder/-/issues/87
+RUN curl -LsSf https://github.com/astral-sh/uv/releases/download/0.6.0/uv-x86_64-unknown-linux-gnu.tar.gz -o uv.gz && \
+    echo cd1ac8840037940fa69fd18c51dd60ae uv.gz | md5sum -c && \
+    tar -xzf uv.gz -C /usr/bin --strip-components=1 && \
+    rm uv.gz
+
 # setup a python venv - requried by the RSB to find 'python'
-RUN python3 -mvenv ${VIRTUALENV}
+RUN uv venv --python 3.11 ${VIRTUALENV}
 ENV PATH=${VIRTUALENV}/bin:${PATH}
 
-# get the RTEMS Source Builder
+# get and patch the RTEMS Source Builder
 WORKDIR ${RTEMS_TOP}
+COPY local_patch /local_patch
 RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-source-builder-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
-    mv rtems-source-builder-${RTEMS_VERSION} rsb
+    mv rtems-source-builder-${RTEMS_VERSION} rsb && \
+    git apply /local_patch/rsb.patch
 
-# add in a gcc patch to only build for m7400
-COPY local_patch local_patch
-RUN local_patch/patch-rsb.sh
-
-# get the kernel
+# get and patch the kernel
 RUN curl https://ftp.rtems.org/pub/rtems/releases/${RTEMS_MAJOR}/${RTEMS_VERSION}/sources/rtems-${RTEMS_VERSION}.tar.xz \
     | tar -xJ && \
-    mv rtems-${RTEMS_VERSION} kernel
-
-# patch the kernel
-RUN git apply local_patch/VMEConfig.patch && \
+    mv rtems-${RTEMS_VERSION} kernel && \
+    git apply /local_patch/kernel.patch && \
     cd kernel && \
     ./waf bspdefaults --rtems-bsps=${RTEMS_ARCH}/${RTEMS_BSP} > config.ini && \
     sed -i -e "s|RTEMS_POSIX_API = False|RTEMS_POSIX_API = True|" config.ini
@@ -80,9 +83,8 @@ from environment AS runtime_prep
 # To make this container target smaller we take just the BSP
 COPY --from=developer ${RTEMS_PREFIX} ${RTEMS_PREFIX}
 
-# remove files that are not required
+# remove files that are not required and using space
 RUN rm -r \
-    ${RTEMS_PREFIX}/share/doc \
     ${RTEMS_PREFIX}/share/man \
     ${RTEMS_PREFIX}/share/info \
     ${RTEMS_PREFIX}/powerpc-rtems6/lib/ldscripts
