@@ -35,9 +35,11 @@ RUN curl -LsSf https://github.com/astral-sh/uv/releases/download/0.6.0/uv-x86_64
     tar -xzf uv.gz -C /usr/bin --strip-components=1 && \
     rm uv.gz
 
-# setup a python venv - requried by the RSB to find 'python'
-RUN uv venv --python 3.11 ${VIRTUALENV}
+# setup a python venv requried by the RSB, set up pip for iocs to use
 ENV PATH=${VIRTUALENV}/bin:${PATH}
+RUN uv venv --python 3.11 ${VIRTUALENV} && \
+    python -m ensurepip --upgrade && \
+    ln -sf /venv/bin/pip3 /venv/bin/pip
 
 # get and patch the RTEMS Source Builder
 WORKDIR ${RTEMS_TOP}
