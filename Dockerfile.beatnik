@@ -27,18 +27,15 @@ RUN apt-get update -y && apt-get upgrade -y && \
     && rm -rf /var/lib/apt/lists/* && \
     busybox --install
 
+# a python venv is requried by the RSB
 # use uv to make a python3.11 venv because the RSB does not yet support python3.12
-# see https://gitlab.rtems.org/rtems/tools/rtems-source-builder/-/issues/87
 RUN curl -LsSf https://github.com/astral-sh/uv/releases/download/0.6.0/uv-x86_64-unknown-linux-gnu.tar.gz -o uv.gz && \
     echo cd1ac8840037940fa69fd18c51dd60ae uv.gz | md5sum -c && \
     tar -xzf uv.gz -C /usr/bin --strip-components=1 && \
-    rm uv.gz
+    rm uv.gz && \
+    uv venv --python 3.11 ${VIRTUALENV}
 
-# a python venv is requried by the RSB, set up pip for IOCS based on this image
 ENV PATH=${VIRTUALENV}/bin:${PATH}
-RUN uv venv --python 3.11 ${VIRTUALENV} && \
-    python -m ensurepip --upgrade && \
-    ln -sf /venv/bin/pip3 /venv/bin/pip
 
 # get and patch the RTEMS Source Builder
 WORKDIR ${RTEMS_TOP}
