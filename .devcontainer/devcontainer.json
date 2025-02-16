@@ -1,13 +1,13 @@
 // For format details, see https://containers.dev/implementors/json_reference/
 {
     "name": "epics-containers IOC devcontainer",
-    // WARNING: using a github built image because podman fails to build the image
-    "image": "ghcr.io/epics-containers/rtems-beatnik-developer:6.1ec2",
-    // "build": {
-    //     "dockerfile": "../Dockerfile.beatnik",
-    //     "target": "developer",
-    //     "args": {}
-    // },
+    // uncomment image and comment build if local build does not work
+    // "image": "ghcr.io/epics-containers/rtems-beatnik-developer:6.1ec4",
+    "build": {
+        "dockerfile": "../Dockerfile.beatnik",
+        "target": "developer",
+        "args": {}
+    },
     "remoteEnv": {
         // allows X11 apps to run inside the container
         "DISPLAY": "${localEnv:DISPLAY}",
